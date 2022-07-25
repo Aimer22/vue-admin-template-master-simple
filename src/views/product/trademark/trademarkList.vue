@@ -23,10 +23,10 @@
       <el-table-column
         label="品牌logo"
         width="width" 
-        prop="logoURL">
+        prop="tmLogo">
         <!-- 当要改变列表的结构时，加一个作用域插槽 -->
         <template slot-scope="{row, $index}">
-          <img :src="row.logoURL" alt="" style="width:100px; height:80px">
+          <img :src="row.tmLogo" alt="" style="width:100px; height:80px">
         </template>
       </el-table-column>
       <el-table-column
@@ -57,14 +57,14 @@
         <el-form-item label="品牌名称" label-width="100px" prop="tmName">
           <el-input v-model="tmForm.tmName" autocomplete="on"></el-input>
         </el-form-item> 
-        <el-form-item label-width="100px" label="头像" prop="logoURL">
+        <el-form-item label-width="100px" label="头像" prop="tmLogo">
             <el-upload
               class="avatar-uploader"
               action="/dev-api/admin/product/uploadAvatar"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload">
-              <img v-if="tmForm.logoURL" :src="tmForm.logoURL" class="avatar">
+              <img v-if="tmForm.tmLogo" :src="tmForm.tmLogo" class="avatar">
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
               <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
             </el-upload>
@@ -103,12 +103,12 @@ export default {
       // 弹窗表单数据
       tmForm:{
         tmName:'',
-        logoURL:''
+        tmLogo:''
       },
       imageUrl: '',
       rules:{
         tmName: {required: true, message:'品牌名称不能为空'},
-        logoURL: {required: true, message:'品牌logo不能为空'}
+        tmLogo: {required: true, message:'品牌logo不能为空'}
       }
     }
     
@@ -138,7 +138,7 @@ export default {
       // this.imageUrl = URL.createObjectURL(file.raw); //这家伙花了我好多时间
       console.log('后端传来的图片地址',res.data);
       this.imageUrl = res.data
-      this.tmForm.logoURL = res.data
+      this.tmForm.tmLogo = res.data
 
     },
     beforeAvatarUpload(file) {
@@ -176,7 +176,7 @@ export default {
       // 点击添加按钮后就重新清空表单，并不给id，用户之后的修改或者上传的区分
       this.tmForm  = {
         tmName:'',
-        logoURL:''
+        tmLogo:''
       }
       console.log(this.tmForm);
     },

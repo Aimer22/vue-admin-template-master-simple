@@ -1,56 +1,84 @@
 // 此文件对数据库进行增删改查的操作
+var mongoose = require('mongoose')
 // 引入mongodb配置
-var conn = require('../db.js')
+var conn = require('../mongoose.js')
 // 解决接收不到formdata文件类型的问题
 let multiparty = require('multiparty');
 
 // 获取mongoDB的ObjectId对象，方便接下来的修改数据
 var ObjectId = require('mongodb').ObjectId
 
+// 设置模型
+var tradeMarkSchema = new mongoose.Schema({
+	tmName:String,
+	tmLogo:String
+})
 
+// 有了model我们就可以对collection进行增删改查
+var trademark = conn.model('trademark',tradeMarkSchema);
+
+/* trademark.create([
+  {tmName:'诺基亚牛a2211',tmLogo:'http://localhost:3030/images/jbvktnGTsdaCoXUER8exKuUd.jpg'},
+  {tmName:'华为',tmLogo:'http://localhost:3030/images/jbvktnGTsdaCoXUER8exKuUd.jpg'},
+  {tmName:'小米',tmLogo:'http://localhost:3030/images/jbvktnGTsdaCoXUER8exKuUd.jpg'},
+  {tmName:'苹果',tmLogo:'http://localhost:3030/images/jbvktnGTsdaCoXUER8exKuUd.jpg'},
+  {tmName:'魅族手机111',tmLogo:'http://localhost:3030/images/jbvktnGTsdaCoXUER8exKuUd.jpg'},
+  {tmName:'测试数据',tmLogo:'http://localhost:3030/images/jbvktnGTsdaCoXUER8exKuUd.jpg'}
+]) */
+
+// 对表进行增删改查的操作
+// 查询所有文档
 exports.getTrademarkList = ( req, res ) => {
-  conn.collection('user_info').find({}).toArray((err, data) => {
-        // 操作数据库完成以后要关闭数据库连接
-        // client.close();
-        console.log('拿到数据了');
-        // console.log(data.length);
-        let data1 =  {
-          code: 200,
-          message: "nodejs返回成功",
-          data: {
-            records:data,
-            total: data.length
-          }
+  trademark.find({},function(err, data){
+      console.log('拿到数据了');
+      // console.log(data);	
+
+      let data1 =  {
+        code: 200,
+        message: "nodejs返回成功",
+        data: {
+          records:data,
+          total: data.length
         }
-        res.end(JSON.stringify(data1))
+      }
+      res.end(JSON.stringify(data1))
     })
 }
 
 exports.editTrademark = (req, res) => {
-  let {_id, tmName, logoURL } = req.body
+  let {_id, tmName, tmLogo } = req.body
   // 获取数据库的_id
   console.log('前端发来的id',_id);
-  console.log('前端发来的id',logoURL);
+  console.log('前端发来的id',tmLogo);
+
   // 开始更新数据库中的信息
-  
-  conn.collection('user_info').updateMany(
-    {"_id":new ObjectId(_id)},
-    {$set:{tmName:tmName,logoURL:logoURL}},
+  trademark.updateOne  (
+      {"_id":new ObjectId(_id)},
+      {'tmName':tmName,'tmLogo':tmLogo}
+    ,function(err){
+      
+      if(!err){
+        console.log('修改成功！');
+        // 返回相应数据
+        let result =  {
+          code: 200,
+          message: "修改数据成功！",
+          data: {
+            records:'',
+          }
+        }
+        res.end(JSON.stringify(result))
+
+      }
+      
+    }
   )
 
-  // 返回相应数据
-  let result =  {
-    code: 200,
-    message: "修改数据成功！",
-    data: {
-      records:'',
-    }
-  }
-  res.end(JSON.stringify(result))
+  
   
 }
 
-// 用户文件类型的上传保存
+// 用户文件类型的上传保存(非数据库保存)
 exports.uploadAvatar = (req, res) => {
   let form = new multiparty.Form();
   let path = require('path')
@@ -77,17 +105,25 @@ exports.uploadAvatar = (req, res) => {
 }
 // 添加新用户
 exports.addTrademark = (req, res) => {
-  let {_id, tmName, logoURL } = req.body
-  conn.collection('user_info').insertOne({tmName:tmName,logoURL:logoURL},
-  )
-  let result =  {
-    code: 200,
-    message: "添加成功，请到最后一页查看！",
-    data: {
-      records:'',
+  let {_id, tmName, tmLogo } = req.body
+  /* conn.collection('user_info').insertOne({tmName:tmName,tmLogo:tmLogo},
+  ) */
+  trademark.create(
+    {tmName:tmName,tmLogo:tmLogo}
+  ,function(err){
+    if(!err){
+      let result =  {
+        code: 200,
+        message: "添加成功，请到最后一页查看！",
+        data: {
+          records:'',
+        }
+      }
+      res.end(JSON.stringify(result))
     }
-  }
-  res.end(JSON.stringify(result))
+  })
+  
+  
 }
 
 // 根据id删除
@@ -95,16 +131,23 @@ exports.deleteTrademark = (req, res) => {
   // console.log(req.body);
   // let {_id} = req.body
   // console.log(req.params.id); 
-  conn.collection('user_info').deleteOne({"_id":new ObjectId(req.params.id)})
-  // 返回相应数据
-  let result =  {
-    code: 200,
-    message: "删除数据成功！",
-    data: {
-      records:'',
-    }
-  }
-  res.end(JSON.stringify(result))
+  // conn.collection('user_info').deleteOne({"_id":new ObjectId(req.params.id)})
+  trademark.deleteOne({"_id":new ObjectId(req.params.id)},function(err){
+		if(!err){
+			console.log('删除成功');
+
+      // 返回相应数据
+      let result =  {
+        code: 200,
+        message: "删除数据成功！",
+        data: {
+          records:'',
+        }
+      }
+      res.end(JSON.stringify(result))
+		}
+	})
+  
 }
 
 exports.uploadAvatar1 = (req, res) => {
